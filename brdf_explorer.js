@@ -6,7 +6,8 @@ var CONFIG = (function()
          'NEAR' : 0.1,
          'FAR' : 100,
          'SHADER_LIBRARY_PATH' : 'shader_lib.json',
-         'SHADER_CHUNK_DIR' : 'shader/'
+         'SHADER_CHUNK_DIR' : 'shader/',
+         'IMAGE_DIR' : 'img/'
      };
 
      return {
@@ -29,30 +30,35 @@ var URL_PARAMS;
 
 ShaderLibrary = {};
 
-var renderer, scene, camera, stats, ext_stats;
+var renderer, scene, camera, stats, ext_stats, controls, reflection_cube;
 
 function init()
 {
 	renderer = new THREE.WebGLRenderer();
 	renderer.setSize(window.innerWidth, window.innerHeight);
 	document.body.appendChild(renderer.domElement);
-	renderer.setClearColor(0x00ff00, 1.0);
+	renderer.setClearColor(0x000000, 1.0);
 
 	scene = new THREE.Scene();
 
 	camera = new THREE.PerspectiveCamera(CONFIG.get('FOV_Y'), window.innerWidth / window.innerHeight, CONFIG.get('NEAR'), CONFIG.get('FAR'));
 	window.addEventListener('resize', onWindowResize, false);
 	scene.add(camera);
-	camera.position.z = 3;
+	camera.position.z = 2.0;
+
+	controls = new THREE.OrbitControls(camera);
+	controls.noZoom = true;
 
 	initGUI();
 	initStats();
 	loadShaders();
 
-	var geometry = new THREE.BoxGeometry(1, 1, 1);
-	var material = new THREE.MeshBasicMaterial({color: 0xffffff});
+	var geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+	var material = new THREE.MeshBasicMaterial({color: 0x00ff00});
 	var cube = new THREE.Mesh(geometry, material);
 	scene.add(cube);
+
+	loadCubeMap();
 }
 
 function initGUI()
@@ -113,9 +119,39 @@ function loadShaders()
 	});
 }
 
+// TODO: Account for every resources during load
+function loadCubeMap()
+{
+	var path = CONFIG.get('IMAGE_DIR') + "coit_tower/";
+	var format = '.jpg';
+	var urls = [
+		path + 'posx' + format, path + 'negx' + format,
+		path + 'posy' + format, path + 'negy' + format,
+		path + 'posz' + format, path + 'negz' + format
+	];
+
+	reflection_cube = THREE.ImageUtils.loadTextureCube(urls, THREE.CubeReflectionMapping, function()
+	{
+		var shader = THREE.ShaderLib["cube"];
+		shader.uniforms["tCube"].value = reflection_cube;
+			
+		var materialSkyBox = new THREE.ShaderMaterial(
+		{
+			fragmentShader: shader.fragmentShader,
+			vertexShader: shader.vertexShader,
+			uniforms: shader.uniforms,
+			depthWrite: false,
+			side: THREE.BackSide
+		});
+	
+		scene.add(new THREE.Mesh(new THREE.BoxGeometry(50, 50, 50), materialSkyBox));
+	});
+}
+
 function render()
 {
 	requestAnimationFrame(render);
+	controls.update();
 
 	if (URL_PARAMS['debug'] == 'true')
 	{
