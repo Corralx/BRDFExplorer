@@ -1,17 +1,18 @@
 var CONFIG = (function()
 {
-     var private =
-     {
-         'FOV_Y': 60.0,
-         'NEAR' : 0.1,
-         'FAR' : 100,
-         'SHADER_LIBRARY_PATH' : 'shader_lib.json',
-         'SHADER_CHUNK_DIR' : 'shader/',
-         'IMAGE_DIR' : 'img/'
-     };
+	var private =
+    {
+        'FOV_Y': 60.0,
+        'NEAR' : 0.1,
+        'FAR' : 100,
+        'SHADER_LIBRARY_PATH' : 'shader_lib.json',
+        'SHADER_CHUNK_DIR' : 'shader/',
+        'CUBEMAP_DIR' : 'img/',
+        'CUBEMAP_LIBRARY_PATH' : 'cubemap_lib.json'
+    };
 
-     return {
-        get: function(name) { return private[name]; }
+    return {
+    	get: function(name) { return private[name]; }
     };
 })();
 
@@ -29,6 +30,7 @@ var URL_PARAMS;
 })();
 
 ShaderLibrary = {};
+CubeMapLibrary = {};
 
 var renderer, scene, camera, stats, ext_stats, controls, reflection_cube;
 
@@ -53,12 +55,23 @@ function init()
 	initStats();
 	loadShaders();
 
+	/*
 	var geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
 	var material = new THREE.MeshBasicMaterial({color: 0x00ff00});
 	var cube = new THREE.Mesh(geometry, material);
 	scene.add(cube);
+	*/
 
 	loadCubeMap();
+
+	(new THREE.AssimpJSONLoader()).load("model/mitsuba_min.json", function(mesh)
+	{
+		var obj = mesh.children[0];
+		console.log(obj);
+		obj.scale.set(0.04, 0.04, 0.04);
+		obj.position.y = -0.5;
+		scene.add(obj);
+	});
 }
 
 function initGUI()
@@ -122,7 +135,7 @@ function loadShaders()
 // TODO: Account for every resources during load
 function loadCubeMap()
 {
-	var path = CONFIG.get('IMAGE_DIR') + "coit_tower/";
+	var path = CONFIG.get('CUBEMAP_DIR') + "coit_tower/";
 	var format = '.jpg';
 	var urls = [
 		path + 'posx' + format, path + 'negx' + format,

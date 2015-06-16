@@ -1,5 +1,5 @@
 {
-	"chunks" :
+	"chunks":
 	[
 		"diffuse.lambert.shc",
 		"diffuse.oren_nayar.shc"
