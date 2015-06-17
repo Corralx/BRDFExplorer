@@ -9,7 +9,8 @@ var CONFIG = (function()
         'SHADER_CHUNK_DIR': 'shader/',
         'CUBEMAP_DIR': 'img/',
         'CUBEMAP_LIBRARY_PATH': 'cubemap_lib.json',
-        'MODEL_DIR': 'model/'
+        'MODEL_DIR': 'model/',
+        'MODEL_LIBRARY_PATH': 'model_lib.json'
     };
 
     return {
@@ -32,8 +33,9 @@ var URL_PARAMS;
 
 ShaderLibrary = {};
 CubeMapLibrary = {};
+ModelLibrary = {};
 
-var renderer, scene, camera, stats, ext_stats, controls, reflection_cube;
+var renderer, scene, camera, stats, ext_stats, controls, reflection_cube, model_loader, is_loading_model, is_loading_cubemap, gui, skybox;
 
 function init()
 {
@@ -49,85 +51,62 @@ function init()
 	scene.add(camera);
 	camera.position.z = 2.0;
 
-	controls = new THREE.OrbitControls(camera);
+	controls = new THREE.OrbitControls(camera, renderer.domElement);
 	controls.noZoom = true;
+
+	model_loader = new THREE.AssimpJSONLoader();
+	is_loading_model = false;
+	is_loading_cubemap = false;
 
 	initGUI();
 	initStats();
+	initSkybox();
 	loadShaders();
+	loadCubeMaps();
+	loadModels();
 
-	/*
-	var geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
-	var material = new THREE.MeshBasicMaterial({color: 0x00ff00});
-	var cube = new THREE.Mesh(geometry, material);
-	scene.add(cube);
-	*/
-
-	loadCubeMap();
-
-	/* Stanford Dragon
-	(new THREE.AssimpJSONLoader()).load("model/dragon_low_min.json", function(mesh)
-	{
-		console.log(mesh.children[0]);
-		mesh.children[0].scale.set(0.1, 0.1, 0.1);
-		mesh.children[0].position.y = -0.45;
-		mesh.children[0].children[0].geometry.merge(mesh.children[0].children[1].geometry);
-		mesh.children[0].remove(mesh.children[0].children[1]);
-		mesh.children[0].children[0].geometry.computeFaceNormals();
-		mesh.children[0].children[0].geometry.computeVertexNormals();
-		mesh.children[0].children[0].material = new THREE.MeshLambertMaterial({ color: 0xff0000 });
-		scene.add(new THREE.DirectionalLight(new THREE.Vector3(-50.0, -50.0, -50.0), 1.0));
-		scene.add(mesh.children[0]);
-	});
-	*/
-
-	/* Stanford Buddha
-	(new THREE.AssimpJSONLoader()).load("model/buddha_low_min.json", function(mesh)
-	{
-		console.log(mesh.children[0]);
-		mesh.children[0].scale.set(0.012, 0.012, 0.012);
-		mesh.children[0].position.y = -0.55;
-		mesh.children[0].children[0].geometry.computeFaceNormals();
-		mesh.children[0].children[0].geometry.computeVertexNormals();
-		mesh.children[0].children[0].material = new THREE.MeshLambertMaterial({ color: 0xff0000 });
-		scene.add(new THREE.DirectionalLight(new THREE.Vector3(-50.0, -50.0, -50.0), 1.0));
-		scene.add(mesh.children[0]);
-	});
-	*/
-
-	/* Stanford Lucy */
-	(new THREE.AssimpJSONLoader()).load("model/lucy_min.json", function(mesh)
-	{
-		console.log(mesh.children[0]);
-		mesh.children[0].scale.set(0.004, 0.004, 0.004);
-		mesh.children[0].position.y = -0.65;
-		mesh.children[0].children[0].geometry.computeFaceNormals();
-		mesh.children[0].children[0].geometry.computeVertexNormals();
-		mesh.children[0].children[0].material = new THREE.MeshLambertMaterial({ color: 0xff0000 });
-		scene.add(new THREE.DirectionalLight(new THREE.Vector3(-50.0, -50.0, -50.0), 1.0));
-		scene.add(mesh.children[0]);
-	});
-
-	/* Mitsuba
-	(new THREE.AssimpJSONLoader()).load("model/mitsuba_min.json", function(mesh)
-	{
-		console.log(mesh.children[0]);
-		mesh.children[0].scale.set(0.04, 0.04, 0.04);
-		mesh.children[0].position.y = -0.55;
-		mesh.children[0].children[0].geometry.merge(mesh.children[0].children[1].geometry);
-		mesh.children[0].remove(mesh.children[0].children[1]);
-		mesh.children[0].children[0].geometry.computeFaceNormals();
-		mesh.children[0].children[0].geometry.computeVertexNormals();
-		mesh.children[0].children[0].material = new THREE.MeshLambertMaterial({ color: 0xff0000 });
-		scene.add(new THREE.DirectionalLight(new THREE.Vector3(-50.0, -50.0, -50.0), 1.0));
-		scene.add(mesh.children[0]);
-	});
-	*/
+	render();
 }
 
 function initGUI()
 {
-	// TODO
+	var gui_logic = function()
+	{
+		this.model = '';
+		this.environment = '';
+	};
+
+	gui = new dat.GUI();
+	gui.logic = new gui_logic();
+
+	gui.model = gui.add(gui.logic, 'model', []);
+	gui.model_callback = function(value)
+	{
+		var current_model = getCurrentModel();
+		var new_model = ModelLibrary[value];
+
+		loadModel(new_model, function()
+		{
+			scene.remove(current_model.object);
+			scene.add(new_model.object);
+			current_model.current = false;
+			new_model.current = true;
+		});
+	};
+
+	gui.environment = gui.add(gui.logic, 'environment', []);
+	gui.environment_callback = function(value)
+	{
+		var current_cubemap = getCurrentEnvironment();
+		var new_cubemap = CubeMapLibrary[value];
+
+		loadCubeMap(new_cubemap, function()
+		{
+			setSkybox(new_cubemap);
+			current_cubemap.current = false;
+			new_cubemap.current = true;
+		});
+	};
 }
 
 function initStats()
@@ -152,6 +131,22 @@ function initStats()
 	document.body.appendChild(ext_stats.domElement);
 }
 
+function initSkybox()
+{
+	var shader = THREE.ShaderLib["cube"];
+	var materialSkyBox = new THREE.ShaderMaterial(
+	{
+		fragmentShader: shader.fragmentShader,
+		vertexShader: shader.vertexShader,
+		uniforms: shader.uniforms,
+		depthWrite: false,
+		side: THREE.BackSide
+	});
+	
+	skybox = new THREE.Mesh(new THREE.BoxGeometry(500, 500, 500), materialSkyBox);
+	scene.add(skybox);
+}
+
 function loadShaders()
 {
 	$.ajaxSetup({beforeSend: function(xhr)
@@ -162,9 +157,6 @@ function loadShaders()
 
 	$.getJSON(CONFIG.get('SHADER_LIBRARY_PATH')).done(function(json)
 	{
-		var total_chunks = json.chunks.length;
-		var loaded_chunks = 0;
-
 		$.ajaxSetup({beforeSend: function(xhr)
 		{
   			if (xhr.overrideMimeType)
@@ -175,16 +167,13 @@ function loadShaders()
 		{
 			$.ajax(CONFIG.get('SHADER_CHUNK_DIR') + chunk).done(function(shader_chunk)
 			{
-				loaded_chunks++;
-				if (loaded_chunks == total_chunks)
-					render();
+				// TODO
 			});
 		});
 	});
 }
 
-// TODO: Account for every resources during load
-function loadCubeMap()
+function loadCubeMaps()
 {
 	$.ajaxSetup({beforeSend: function(xhr)
 	{
@@ -194,38 +183,182 @@ function loadCubeMap()
 
 	$.getJSON(CONFIG.get('CUBEMAP_LIBRARY_PATH')).done(function(json)
 	{
-		console.log(json);
+		gui.remove(gui.environment);
+		gui_env = [];
+
 		json.cubemap.forEach(function(cubemap)
 		{
-			if (cubemap.default)
-				console.log(cubemap.name);
-		});
-	});
+			CubeMapLibrary[cubemap.name] = cubemap;
+			CubeMapLibrary[cubemap.name].loaded = false;
+			CubeMapLibrary[cubemap.name].current = false;
 
-	var path = CONFIG.get('CUBEMAP_DIR') + "coit_tower/";
-	var format = '.jpg';
+			if (CubeMapLibrary[cubemap.name].default)
+			{
+				loadCubeMap(CubeMapLibrary[cubemap.name], function()
+				{
+					setSkybox(CubeMapLibrary[cubemap.name]);
+					CubeMapLibrary[cubemap.name].current = true;
+				});
+			}
+
+			gui_env.push(cubemap.name);
+		});
+
+		gui.environment = gui.add(gui.logic, "environment", gui_env);
+		gui.environment.onFinishChange(gui.environment_callback);
+	});
+}
+
+function loadCubeMap(cubemap, callback)
+{
+	if (cubemap.loaded)
+	{
+		callback();
+		return true;
+	}
+
+	if (is_loading_cubemap)
+	{
+		console.error("Already loading another environment!");
+		return false;
+	}
+
+	is_loading_cubemap = true;
+	gui.domElement.classList.add('not-active');
+
+	var path = CONFIG.get('CUBEMAP_DIR') + cubemap.dir + "/";
+	var format = "." + cubemap.extension;
 	var urls = [
 		path + 'posx' + format, path + 'negx' + format,
 		path + 'posy' + format, path + 'negy' + format,
 		path + 'posz' + format, path + 'negz' + format
 	];
 
-	reflection_cube = THREE.ImageUtils.loadTextureCube(urls, THREE.CubeReflectionMapping, function()
+	cubemap.object = THREE.ImageUtils.loadTextureCube(urls, THREE.CubeReflectionMapping, function()
 	{
-		var shader = THREE.ShaderLib["cube"];
-		shader.uniforms["tCube"].value = reflection_cube;
-			
-		var materialSkyBox = new THREE.ShaderMaterial(
-		{
-			fragmentShader: shader.fragmentShader,
-			vertexShader: shader.vertexShader,
-			uniforms: shader.uniforms,
-			depthWrite: false,
-			side: THREE.BackSide
-		});
-	
-		scene.add(new THREE.Mesh(new THREE.BoxGeometry(500, 500, 500), materialSkyBox));
+		cubemap.loaded = true;
+		is_loading_cubemap = false;
+		gui.domElement.classList.remove('not-active');
+		callback();
 	});
+
+	return true;
+}
+
+function loadModels()
+{
+	$.ajaxSetup({beforeSend: function(xhr)
+	{
+  		if (xhr.overrideMimeType)
+  			xhr.overrideMimeType("application/json");
+  	}});
+
+	$.getJSON(CONFIG.get('MODEL_LIBRARY_PATH')).done(function(json)
+	{
+		gui.remove(gui.model);
+		gui_model = [];
+
+		json.model.forEach(function(model)
+		{
+			ModelLibrary[model.name] = model;
+			ModelLibrary[model.name].loaded = false;
+			ModelLibrary[model.name].current = false;
+
+			if (ModelLibrary[model.name].default)
+			{
+				loadModel(ModelLibrary[model.name], function()
+					{
+						scene.add(ModelLibrary[model.name].object);
+						ModelLibrary[model.name].current = true;
+					});
+			}
+
+			gui_model.push(model.name);
+		});
+
+		gui.model = gui.add(gui.logic, "model", gui_model);
+		gui.model.onFinishChange(gui.model_callback);
+	});
+}
+
+// TODO: What to do if the model is already loaded?
+function loadModel(model, callback)
+{
+	if (model.loaded)
+	{
+		callback();
+		return true;
+	}
+
+	if (is_loading_model)
+	{
+		console.error("Already loading another model!");
+		return false;
+	}
+
+	is_loading_model = true;
+	gui.domElement.classList.add('not-active');
+
+	model_loader.load(CONFIG.get('MODEL_DIR') + model.path, function(obj)
+	{
+		model.loaded = true;
+
+		if (model.remove_root)
+			obj = obj.children[0];
+
+		// TODO: Merge every children after the first
+		if (model.merge_children)
+		{
+			obj.children[0].geometry.merge(obj.children[1].geometry);
+			obj.remove(obj.children[1]);
+		}
+
+		obj.children[0].geometry.computeFaceNormals();
+		obj.children[0].geometry.computeVertexNormals();
+
+		obj.position.y = model.y_offset;
+		obj.scale.set(model.scale.x, model.scale.y, model.scale.z);
+
+		is_loading_model = false;
+		gui.domElement.classList.remove('not-active');
+
+		model.object = obj;
+
+		callback();
+	});
+
+	return true;
+}
+
+function getCurrentModel()
+{
+	for (var m in ModelLibrary)
+	{
+		var model = ModelLibrary[m];
+
+		if (model.current)
+			return model;
+	}
+
+	console.error("No current model found!");
+}
+
+function getCurrentEnvironment()
+{
+	for (var cm in CubeMapLibrary)
+	{
+		var cubemap = CubeMapLibrary[cm];
+
+		if (cubemap.current)
+			return cubemap;
+	}
+
+	console.error("No current environment found!");
+}
+
+function setSkybox(cubemap)
+{
+	skybox.material.uniforms['tCube'].value = cubemap.object;
 }
 
 function render()
@@ -247,5 +380,5 @@ function onWindowResize()
 	camera.aspect = window.innerWidth / window.innerHeight;
 	camera.updateProjectionMatrix();
 
-	renderer.setSize( window.innerWidth, window.innerHeight );
+	renderer.setSize(window.innerWidth, window.innerHeight);
 }

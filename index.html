@@ -13,7 +13,27 @@
 	<script>
 		$(init);
 	</script>
+	<style>
+		body
+		{
+			margin  : 0px;
+		}
+		canvas
+		{
+			z-index : -1000;
+			position: absolute;
+		}
+		.dg
+		{
+			z-index : 1000;
+		}
+		.not-active
+		{
+   			pointer-events: none;
+   			cursor: default;
+		}
+</style>
 </head>
-<body style="margin: 0px">
+<body>
 </body>
 </html>
