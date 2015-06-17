@@ -4,6 +4,11 @@
 		{
 			"name": "Coit Tower",
 			"dir": "coit_tower",
+			"default": true
+		},
+		{
+			"name": "Vancouver Convention Centre",
+			"dir": "vancouver_convention_centre"
 		}
 	]
 }

@@ -1,0 +1,58 @@
+{
+	"model":
+	[
+		{
+			"name": "Lucy",
+			"path": "lucy_min.json",
+			"scale":
+			{
+				"x": 0.004,
+				"y": 0.004,
+				"z": 0.004
+			},
+			"merge_children": false,
+			"remove_root": true,
+			"y_position": -0.65,
+			"default": true
+		},
+		{
+			"name": "Buddha",
+			"path": "buddha_low_min.json",
+			"scale":
+			{
+				"x": 0.012,
+				"y": 0.012,
+				"z": 0.012
+			},
+			"merge_children": false,
+			"remove_root": true,
+			"y_position": -0.55
+		},
+		{
+			"name": "Dragon",
+			"path": "dragon_low_min.json",
+			"scale":
+			{
+				"x": 0.1,
+				"y": 0.1,
+				"z": 0.1
+			},
+			"merge_children": true,
+			"remove_root": true,
+			"y_position": -0.45
+		},
+		{
+			"name": "Buddha",
+			"path": "buddha_low_min.json",
+			"scale":
+			{
+				"x": 0.004,
+				"y": 0.004,
+				"z": 0.004
+			},
+			"merge_children": true,
+			"remove_root": true,
+			"y_position": -0.55
+		}
+	]
+}

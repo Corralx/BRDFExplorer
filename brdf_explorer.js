@@ -3,12 +3,13 @@ var CONFIG = (function()
 	var private =
     {
         'FOV_Y': 60.0,
-        'NEAR' : 0.1,
-        'FAR' : 100,
-        'SHADER_LIBRARY_PATH' : 'shader_lib.json',
-        'SHADER_CHUNK_DIR' : 'shader/',
-        'CUBEMAP_DIR' : 'img/',
-        'CUBEMAP_LIBRARY_PATH' : 'cubemap_lib.json'
+        'NEAR_PLANE': 0.1,
+        'FAR_PLANE': 1000,
+        'SHADER_LIBRARY_PATH': 'shader_lib.json',
+        'SHADER_CHUNK_DIR': 'shader/',
+        'CUBEMAP_DIR': 'img/',
+        'CUBEMAP_LIBRARY_PATH': 'cubemap_lib.json',
+        'MODEL_DIR': 'model/'
     };
 
     return {
@@ -43,7 +44,7 @@ function init()
 
 	scene = new THREE.Scene();
 
-	camera = new THREE.PerspectiveCamera(CONFIG.get('FOV_Y'), window.innerWidth / window.innerHeight, CONFIG.get('NEAR'), CONFIG.get('FAR'));
+	camera = new THREE.PerspectiveCamera(CONFIG.get('FOV_Y'), window.innerWidth / window.innerHeight, CONFIG.get('NEAR_PLANE'), CONFIG.get('FAR_PLANE'));
 	window.addEventListener('resize', onWindowResize, false);
 	scene.add(camera);
 	camera.position.z = 2.0;
@@ -64,14 +65,64 @@ function init()
 
 	loadCubeMap();
 
+	/* Stanford Dragon
+	(new THREE.AssimpJSONLoader()).load("model/dragon_low_min.json", function(mesh)
+	{
+		console.log(mesh.children[0]);
+		mesh.children[0].scale.set(0.1, 0.1, 0.1);
+		mesh.children[0].position.y = -0.45;
+		mesh.children[0].children[0].geometry.merge(mesh.children[0].children[1].geometry);
+		mesh.children[0].remove(mesh.children[0].children[1]);
+		mesh.children[0].children[0].geometry.computeFaceNormals();
+		mesh.children[0].children[0].geometry.computeVertexNormals();
+		mesh.children[0].children[0].material = new THREE.MeshLambertMaterial({ color: 0xff0000 });
+		scene.add(new THREE.DirectionalLight(new THREE.Vector3(-50.0, -50.0, -50.0), 1.0));
+		scene.add(mesh.children[0]);
+	});
+	*/
+
+	/* Stanford Buddha
+	(new THREE.AssimpJSONLoader()).load("model/buddha_low_min.json", function(mesh)
+	{
+		console.log(mesh.children[0]);
+		mesh.children[0].scale.set(0.012, 0.012, 0.012);
+		mesh.children[0].position.y = -0.55;
+		mesh.children[0].children[0].geometry.computeFaceNormals();
+		mesh.children[0].children[0].geometry.computeVertexNormals();
+		mesh.children[0].children[0].material = new THREE.MeshLambertMaterial({ color: 0xff0000 });
+		scene.add(new THREE.DirectionalLight(new THREE.Vector3(-50.0, -50.0, -50.0), 1.0));
+		scene.add(mesh.children[0]);
+	});
+	*/
+
+	/* Stanford Lucy */
+	(new THREE.AssimpJSONLoader()).load("model/lucy_min.json", function(mesh)
+	{
+		console.log(mesh.children[0]);
+		mesh.children[0].scale.set(0.004, 0.004, 0.004);
+		mesh.children[0].position.y = -0.65;
+		mesh.children[0].children[0].geometry.computeFaceNormals();
+		mesh.children[0].children[0].geometry.computeVertexNormals();
+		mesh.children[0].children[0].material = new THREE.MeshLambertMaterial({ color: 0xff0000 });
+		scene.add(new THREE.DirectionalLight(new THREE.Vector3(-50.0, -50.0, -50.0), 1.0));
+		scene.add(mesh.children[0]);
+	});
+
+	/* Mitsuba
 	(new THREE.AssimpJSONLoader()).load("model/mitsuba_min.json", function(mesh)
 	{
-		var obj = mesh.children[0];
-		console.log(obj);
-		obj.scale.set(0.04, 0.04, 0.04);
-		obj.position.y = -0.5;
-		scene.add(obj);
+		console.log(mesh.children[0]);
+		mesh.children[0].scale.set(0.04, 0.04, 0.04);
+		mesh.children[0].position.y = -0.55;
+		mesh.children[0].children[0].geometry.merge(mesh.children[0].children[1].geometry);
+		mesh.children[0].remove(mesh.children[0].children[1]);
+		mesh.children[0].children[0].geometry.computeFaceNormals();
+		mesh.children[0].children[0].geometry.computeVertexNormals();
+		mesh.children[0].children[0].material = new THREE.MeshLambertMaterial({ color: 0xff0000 });
+		scene.add(new THREE.DirectionalLight(new THREE.Vector3(-50.0, -50.0, -50.0), 1.0));
+		scene.add(mesh.children[0]);
 	});
+	*/
 }
 
 function initGUI()
@@ -135,6 +186,22 @@ function loadShaders()
 // TODO: Account for every resources during load
 function loadCubeMap()
 {
+	$.ajaxSetup({beforeSend: function(xhr)
+	{
+  		if (xhr.overrideMimeType)
+  			xhr.overrideMimeType("application/json");
+  	}});
+
+	$.getJSON(CONFIG.get('CUBEMAP_LIBRARY_PATH')).done(function(json)
+	{
+		console.log(json);
+		json.cubemap.forEach(function(cubemap)
+		{
+			if (cubemap.default)
+				console.log(cubemap.name);
+		});
+	});
+
 	var path = CONFIG.get('CUBEMAP_DIR') + "coit_tower/";
 	var format = '.jpg';
 	var urls = [
@@ -157,7 +224,7 @@ function loadCubeMap()
 			side: THREE.BackSide
 		});
 	
-		scene.add(new THREE.Mesh(new THREE.BoxGeometry(50, 50, 50), materialSkyBox));
+		scene.add(new THREE.Mesh(new THREE.BoxGeometry(500, 500, 500), materialSkyBox));
 	});
 }
 
