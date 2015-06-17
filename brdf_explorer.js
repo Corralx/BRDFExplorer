@@ -70,6 +70,8 @@ function init()
 
 function initGUI()
 {
+	$.notify.defaults({ globalPosition: "botto right" });
+
 	var gui_logic = function()
 	{
 		this.model = '';
@@ -219,9 +221,11 @@ function loadCubeMap(cubemap, callback)
 
 	if (is_loading_cubemap)
 	{
-		console.error("Already loading another environment!");
+		$.notify("Already loading another environment!", "error");
 		return false;
 	}
+
+	$.notify("Loading environment " + cubemap.name, "info");
 
 	is_loading_cubemap = true;
 	gui.domElement.classList.add('not-active');
@@ -240,6 +244,8 @@ function loadCubeMap(cubemap, callback)
 		is_loading_cubemap = false;
 		gui.domElement.classList.remove('not-active');
 		callback();
+
+		$.notify("Environment " + cubemap.name + " loaded!", "success");
 	});
 
 	return true;
@@ -292,9 +298,11 @@ function loadModel(model, callback)
 
 	if (is_loading_model)
 	{
-		console.error("Already loading another model!");
+		$.notify("Already loading another model!", "error");
 		return false;
 	}
+
+	$.notify("Loading model " + model.name, "info");
 
 	is_loading_model = true;
 	gui.domElement.classList.add('not-active');
@@ -325,6 +333,8 @@ function loadModel(model, callback)
 		model.object = obj;
 
 		callback();
+
+		$.notify("Model " + model.name + " loaded!", "success");
 	});
 
 	return true;
@@ -340,7 +350,7 @@ function getCurrentModel()
 			return model;
 	}
 
-	console.error("No current model found!");
+	$.notify("No current model found!", "error");
 }
 
 function getCurrentEnvironment()
@@ -353,7 +363,7 @@ function getCurrentEnvironment()
 			return cubemap;
 	}
 
-	console.error("No current environment found!");
+	$.notify("No current environment found!", "error");
 }
 
 function setSkybox(cubemap)
