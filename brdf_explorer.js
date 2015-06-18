@@ -150,9 +150,9 @@ function initMaterial()
 		specular_color: 		{ type: "v3", value: new THREE.Vector3() },
 		specular: 				{ type: "f",  value: 0.0 },
 		metallic: 				{ type: "f",  value: 0.0 },
-		roughness: 				{ type: "f",  value: 0.0 }
+		roughness: 				{ type: "f",  value: 0.0 },
+		environment: 			{ type: "t",  value: null }
 	};
-
 }
 
 function initSkybox()
@@ -428,6 +428,7 @@ function render()
 		// TODO: updateUniforms
 		var normal_matrix = new THREE.Matrix3().getNormalMatrix(current_model.object.matrixWorld);
 		material.uniforms.world_normal_matrix.value = normal_matrix;
+		material.uniforms.environment.value = getCurrentEnvironment().object;
 	}
 
 	renderer.render(scene, camera);
