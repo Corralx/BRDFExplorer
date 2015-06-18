@@ -95,6 +95,8 @@ function initGUI()
 			scene.add(new_model.object);
 			current_model.current = false;
 			new_model.current = true;
+
+			new_model.object.children[0].material = material;
 		});
 	};
 
