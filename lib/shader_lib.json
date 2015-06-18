@@ -1,8 +1,51 @@
 {
 	"vertex_shader": "base_vertex.vs",
+	"fragment_shader": "base_fragment.fs",
 	"chunks":
-	[
-		"diffuse.lambert.fsc",
-		"diffuse.oren_nayar.fsc"
-	]
+	{
+		"diffuse":
+		[
+			{
+				"name": "Lambert",
+				"path": "lambert.fsc"
+			},
+			{
+				"name": "Oren-Nayar",
+				"path": "oren_nayar.fsc"
+			},
+			{
+				"name": "Burley",
+				"path": "burley.fsc"
+			}
+		],
+		"distribution":
+		[
+			{
+				"name": "",
+				"path": ""
+			}
+		],
+		"shadowing":
+		[
+			{
+				"name": "",
+				"path": ""
+			}
+		],
+		"fresnel":
+		[
+			{
+				"name": "",
+				"path": ""
+			}
+		],
+		"roughness":
+		[
+			{
+				"name": "",
+				"path": ""
+			}
+		]
+	},
+	"fragment_stub": "fragment_stub.fs"
 }

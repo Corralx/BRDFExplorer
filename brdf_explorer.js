@@ -36,7 +36,7 @@ ShaderLibrary = {};
 CubeMapLibrary = {};
 ModelLibrary = {};
 
-var renderer, scene, camera, stats, ext_stats, controls, reflection_cube, model_loader, is_loading_model, is_loading_cubemap, gui, skybox;
+var renderer, scene, camera, stats, ext_stats, controls, reflection_cube, model_loader, is_loading_model, is_loading_cubemap, gui, skybox, material;
 
 function init()
 {
@@ -61,6 +61,7 @@ function init()
 
 	initGUI();
 	initStats();
+	initMaterial();
 	initSkybox();
 	loadShaders();
 	loadCubeMaps();
@@ -134,6 +135,24 @@ function initStats()
 	document.body.appendChild(ext_stats.domElement);
 }
 
+function initMaterial()
+{
+	material = new THREE.ShaderMaterial();
+	material.name = "BRDF";
+	material.lights = false;
+	material.defines = "";
+	material.uniforms =
+	{
+		world_normal_matrix: 	{ type: "m3", value: new THREE.Matrix3() },
+		albedo: 				{ type: "v3", value: new THREE.Vector3() },
+		specular_color: 		{ type: "v3", value: new THREE.Vector3() },
+		specular: 				{ type: "f",  value: 0.0 },
+		metallic: 				{ type: "f",  value: 0.0 },
+		roughness: 				{ type: "f",  value: 0.0 }
+	};
+
+}
+
 function initSkybox()
 {
 	var shader = THREE.ShaderLib["cube"];
@@ -166,13 +185,25 @@ function loadShaders()
   				xhr.overrideMimeType("text/plain");
   		}});
 
-		json.chunks.forEach(function(chunk)
+		$.ajax(CONFIG.get('SHADER_DIR') + json.vertex_shader).done(function(vertex_shader)
 		{
-			$.ajax(CONFIG.get('SHADER_DIR') + chunk).done(function(shader_chunk)
-			{
-				// TODO
-			});
+			ShaderLibrary.vertex_shader = vertex_shader;
+		}).fail(function()
+		{
+			$.notify("Base vertex shader not found!", "error");
+			return;
 		});
+
+		$.ajax(CONFIG.get('SHADER_DIR') + json.fragment_shader).done(function(fragment_shader)
+		{
+			ShaderLibrary.fragment_shader = fragment_shader;
+		}).fail(function()
+		{
+			$.notify("Base fragment shader not found!", "error");
+			return;
+		});
+
+		// TODO: fragment_stub, fragment chunks
 	});
 }
 
@@ -242,10 +273,11 @@ function loadCubeMap(cubemap, callback)
 	cubemap.object = THREE.ImageUtils.loadTextureCube(urls, THREE.CubeReflectionMapping, function()
 	{
 		cubemap.loaded = true;
+
 		is_loading_cubemap = false;
 		gui.domElement.classList.remove('not-active');
-		callback();
 
+		callback();
 		$.notify("Environment " + cubemap.name + " loaded!", "success");
 	});
 
@@ -277,6 +309,9 @@ function loadModels()
 					{
 						scene.add(ModelLibrary[model.name].object);
 						ModelLibrary[model.name].current = true;
+
+						updateMaterial();
+						ModelLibrary[model.name].object.children[0].material = material;
 					});
 			}
 
@@ -327,17 +362,24 @@ function loadModel(model, callback)
 		obj.position.y = model.y_offset;
 		obj.scale.set(model.scale.x, model.scale.y, model.scale.z);
 
+		model.object = obj;
+
 		is_loading_model = false;
 		gui.domElement.classList.remove('not-active');
 
-		model.object = obj;
-
 		callback();
-
 		$.notify("Model " + model.name + " loaded!", "success");
 	});
 
 	return true;
+}
+
+function updateMaterial()
+{
+	if (ShaderLibrary.vertex_shader)
+		material.vertexShader = ShaderLibrary.vertex_shader;
+	if (ShaderLibrary.fragment_shader)
+		material.fragmentShader = ShaderLibrary.fragment_shader;
 }
 
 function getCurrentModel()
@@ -349,8 +391,6 @@ function getCurrentModel()
 		if (model.current)
 			return model;
 	}
-
-	$.notify("No current model found!", "error");
 }
 
 function getCurrentEnvironment()
@@ -362,8 +402,6 @@ function getCurrentEnvironment()
 		if (cubemap.current)
 			return cubemap;
 	}
-
-	$.notify("No current environment found!", "error");
 }
 
 function setSkybox(cubemap)
@@ -380,6 +418,14 @@ function render()
 	{
 		stats.update();
 		ext_stats.update(renderer);
+	}
+
+	var current_model = getCurrentModel();
+	if (current_model)
+	{
+		// TODO: updateUniforms
+		var normal_matrix = new THREE.Matrix3().getNormalMatrix(current_model.object.matrixWorld);
+		material.uniforms.world_normal_matrix.value = normal_matrix;
 	}
 
 	renderer.render(scene, camera);
