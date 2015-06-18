@@ -5,8 +5,9 @@ var CONFIG = (function()
         'FOV_Y': 60.0,
         'NEAR_PLANE': 0.1,
         'FAR_PLANE': 1000,
+        'LIBRARY_DIR': 'lib/',
+        'SHADER_DIR': 'shader/',
         'SHADER_LIBRARY_PATH': 'shader_lib.json',
-        'SHADER_CHUNK_DIR': 'shader/',
         'CUBEMAP_DIR': 'img/',
         'CUBEMAP_LIBRARY_PATH': 'cubemap_lib.json',
         'MODEL_DIR': 'model/',
@@ -70,7 +71,7 @@ function init()
 
 function initGUI()
 {
-	$.notify.defaults({ globalPosition: "botto right" });
+	$.notify.defaults({ globalPosition: "bottom right" });
 
 	var gui_logic = function()
 	{
@@ -157,7 +158,7 @@ function loadShaders()
   			xhr.overrideMimeType("application/json");
   	}});
 
-	$.getJSON(CONFIG.get('SHADER_LIBRARY_PATH')).done(function(json)
+	$.getJSON(CONFIG.get('LIBRARY_DIR') + CONFIG.get('SHADER_LIBRARY_PATH')).done(function(json)
 	{
 		$.ajaxSetup({beforeSend: function(xhr)
 		{
@@ -167,7 +168,7 @@ function loadShaders()
 
 		json.chunks.forEach(function(chunk)
 		{
-			$.ajax(CONFIG.get('SHADER_CHUNK_DIR') + chunk).done(function(shader_chunk)
+			$.ajax(CONFIG.get('SHADER_DIR') + chunk).done(function(shader_chunk)
 			{
 				// TODO
 			});
@@ -183,7 +184,7 @@ function loadCubeMaps()
   			xhr.overrideMimeType("application/json");
   	}});
 
-	$.getJSON(CONFIG.get('CUBEMAP_LIBRARY_PATH')).done(function(json)
+	$.getJSON(CONFIG.get('LIBRARY_DIR') + CONFIG.get('CUBEMAP_LIBRARY_PATH')).done(function(json)
 	{
 		gui.remove(gui.environment);
 		gui_env = [];
@@ -259,7 +260,7 @@ function loadModels()
   			xhr.overrideMimeType("application/json");
   	}});
 
-	$.getJSON(CONFIG.get('MODEL_LIBRARY_PATH')).done(function(json)
+	$.getJSON(CONFIG.get('LIBRARY_DIR') + CONFIG.get('MODEL_LIBRARY_PATH')).done(function(json)
 	{
 		gui.remove(gui.model);
 		gui_model = [];
@@ -287,7 +288,6 @@ function loadModels()
 	});
 }
 
-// TODO: What to do if the model is already loaded?
 function loadModel(model, callback)
 {
 	if (model.loaded)

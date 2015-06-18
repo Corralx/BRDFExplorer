@@ -1,0 +1,8 @@
+{
+	"vertex_shader": "base_vertex.vs",
+	"chunks":
+	[
+		"diffuse.lambert.fsc",
+		"diffuse.oren_nayar.fsc"
+	]
+}
