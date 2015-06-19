@@ -38,13 +38,6 @@
 				"name": "",
 				"path": ""
 			}
-		],
-		"roughness":
-		[
-			{
-				"name": "",
-				"path": ""
-			}
 		]
 	},
 	"fragment_stub": "fragment_stub.fs"

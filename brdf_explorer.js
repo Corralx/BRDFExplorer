@@ -148,10 +148,9 @@ function initMaterial()
 		world_normal_matrix: 	{ type: "m3", value: new THREE.Matrix3() },
 		albedo: 				{ type: "v3", value: new THREE.Vector3() },
 		specular_color: 		{ type: "v3", value: new THREE.Vector3() },
-		specular: 				{ type: "f",  value: 0.0 },
-		metallic: 				{ type: "f",  value: 0.0 },
-		roughness: 				{ type: "f",  value: 0.0 },
-		environment: 			{ type: "t",  value: null }
+		metallic: 				{ type: "f",  value: 0.0 				 },
+		roughness: 				{ type: "f",  value: 0.0 				 },
+		environment: 			{ type: "t",  value: null 				 }
 	};
 }
 
@@ -358,6 +357,8 @@ function loadModel(model, callback)
 			obj.remove(obj.children[1]);
 		}
 
+		obj.children[0].geometry.mergeVertices();
+
 		obj.children[0].geometry.computeFaceNormals();
 		obj.children[0].geometry.computeVertexNormals();
 
@@ -428,7 +429,9 @@ function render()
 		// TODO: updateUniforms
 		var normal_matrix = new THREE.Matrix3().getNormalMatrix(current_model.object.matrixWorld);
 		material.uniforms.world_normal_matrix.value = normal_matrix;
-		material.uniforms.environment.value = getCurrentEnvironment().object;
+		var env = getCurrentEnvironment();
+		if (env)
+			material.uniforms.environment.value = env.object;
 	}
 
 	renderer.render(scene, camera);

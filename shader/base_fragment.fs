@@ -1,6 +1,7 @@
+#define PI 3.14159265359
+
 uniform vec3 albedo;
 uniform vec3 specular_color;
-uniform float specular;
 uniform float metallic;
 uniform float roughness;
 uniform samplerCube environment;
