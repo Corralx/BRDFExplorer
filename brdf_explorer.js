@@ -54,6 +54,7 @@ function init()
 
 	controls = new THREE.OrbitControls(camera, renderer.domElement);
 	controls.noZoom = true;
+	controls.noPan = true;
 
 	model_loader = new THREE.AssimpJSONLoader();
 	is_loading_model = false;
@@ -78,12 +79,16 @@ function initGUI()
 	{
 		this.model = '';
 		this.environment = '';
+		this.temperature = 1000.0;
 	};
 
 	gui = new dat.GUI();
 	gui.logic = new gui_logic();
 
-	gui.model = gui.add(gui.logic, 'model', []);
+	gui.scene_folder = gui.addFolder("Scene");
+	gui.scene_folder.open();
+
+	gui.model = gui.scene_folder.add(gui.logic, 'model', []);
 	gui.model_callback = function(value)
 	{
 		var current_model = getCurrentModel();
@@ -100,7 +105,7 @@ function initGUI()
 		});
 	};
 
-	gui.environment = gui.add(gui.logic, 'environment', []);
+	gui.environment = gui.scene_folder.add(gui.logic, 'environment', []);
 	gui.environment_callback = function(value)
 	{
 		var current_cubemap = getCurrentEnvironment();
@@ -113,6 +118,14 @@ function initGUI()
 			new_cubemap.current = true;
 		});
 	};
+
+	gui.light_folder = gui.addFolder("Light");
+	gui.light_folder.open();
+
+	gui.temperature = gui.light_folder.add(gui.logic, 'temperature', 1000.0, 40000.0);
+
+	gui.material_folder = gui.addFolder("Material");
+	gui.material_folder.open();
 }
 
 function initStats()
@@ -147,10 +160,14 @@ function initMaterial()
 	{
 		world_normal_matrix: 	{ type: "m3", value: new THREE.Matrix3() },
 		albedo: 				{ type: "v3", value: new THREE.Vector3() },
-		specular_color: 		{ type: "v3", value: new THREE.Vector3() },
+		specular: 		  		{ type: "v3", value: new THREE.Vector3() },
 		metallic: 				{ type: "f",  value: 0.0 				 },
 		roughness: 				{ type: "f",  value: 0.0 				 },
-		environment: 			{ type: "t",  value: null 				 }
+		environment: 			{ type: "t",  value: null 				 },
+		light_color: 			{ type: "v3", value: new THREE.Vector3() },
+		light_direction: 		{ type: "v3", value: new THREE.Vector3() },
+		light_intensity: 		{ type: "f",  value: 0.0 				 },
+		ambient_intensity: 		{ type: "f",  value: 0.0 				 }
 	};
 }
 
@@ -218,7 +235,7 @@ function loadCubeMaps()
 
 	$.getJSON(CONFIG.get('LIBRARY_DIR') + CONFIG.get('CUBEMAP_LIBRARY_PATH')).done(function(json)
 	{
-		gui.remove(gui.environment);
+		gui.scene_folder.remove(gui.environment);
 		gui_env = [];
 
 		json.cubemap.forEach(function(cubemap)
@@ -239,7 +256,7 @@ function loadCubeMaps()
 			gui_env.push(cubemap.name);
 		});
 
-		gui.environment = gui.add(gui.logic, "environment", gui_env);
+		gui.environment = gui.scene_folder.add(gui.logic, "environment", gui_env);
 		gui.environment.onFinishChange(gui.environment_callback);
 	});
 }
@@ -295,7 +312,7 @@ function loadModels()
 
 	$.getJSON(CONFIG.get('LIBRARY_DIR') + CONFIG.get('MODEL_LIBRARY_PATH')).done(function(json)
 	{
-		gui.remove(gui.model);
+		gui.scene_folder.remove(gui.model);
 		gui_model = [];
 
 		json.model.forEach(function(model)
@@ -319,7 +336,7 @@ function loadModels()
 			gui_model.push(model.name);
 		});
 
-		gui.model = gui.add(gui.logic, "model", gui_model);
+		gui.model = gui.scene_folder.add(gui.logic, "model", gui_model);
 		gui.model.onFinishChange(gui.model_callback);
 	});
 }
@@ -412,6 +429,56 @@ function setSkybox(cubemap)
 	skybox.material.uniforms['tCube'].value = cubemap.object;
 }
 
+function kelvinToRGB(temperature)
+{
+	var temp = temperature / 100.0;
+
+	var red = 255.0;
+	if (temp > 66.0)
+	{
+		red = temp - 60.0;
+		red = 329.698727446 * Math.pow(red, -0.1332047592);
+		red = THREE.Math.clamp(red, 0.0, 255.0);
+	}
+
+	var green = 0.0;
+	if (temp <= 66.0)
+	{
+		green = temp;
+		green = 99.4708025861 * Math.log(green) - 161.1195681661;
+	}
+	else
+	{
+		green = temp - 60.0;
+		green = 288.1221695283 * Math.pow(green, -0.0755148492);
+	}
+	green = THREE.Math.clamp(green, 0.0, 255.0);
+
+	var blue = 255.0;
+	if (temp <= 19.0)
+		blue = 0.0;
+	else if (temp < 66.0)
+	{
+		blue = temp - 10.0;
+        blue = 138.5177312231 * Math.log(blue) - 305.0447927307;
+        blue = THREE.Math.clamp(blue, 0.0, 255.0);
+	}
+
+	return new THREE.Vector3(red / 255.0, green / 255.0, blue / 255.0);
+}
+
+function updateUniforms(current_model)
+{
+	var normal_matrix = new THREE.Matrix3().getNormalMatrix(current_model.object.matrixWorld);
+	material.uniforms.world_normal_matrix.value = normal_matrix;
+
+	material.uniforms.albedo.value = kelvinToRGB(gui.logic.temperature);
+
+	var env = getCurrentEnvironment();
+	if (env)
+		material.uniforms.environment.value = env.object;
+}
+
 function render()
 {
 	requestAnimationFrame(render);
@@ -425,14 +492,7 @@ function render()
 
 	var current_model = getCurrentModel();
 	if (current_model)
-	{
-		// TODO: updateUniforms
-		var normal_matrix = new THREE.Matrix3().getNormalMatrix(current_model.object.matrixWorld);
-		material.uniforms.world_normal_matrix.value = normal_matrix;
-		var env = getCurrentEnvironment();
-		if (env)
-			material.uniforms.environment.value = env.object;
-	}
+		updateUniforms(current_model);
 
 	renderer.render(scene, camera);
 }

@@ -11,6 +11,16 @@
 			"name": "Convention Centre",
 			"dir": "convention_centre",
 			"extension": "jpg"
+		},
+		{
+			"name": "Yokohama",
+			"dir": "Yokohama",
+			"extension": "jpg"
+		},
+		{
+			"name": "Lancellotti Chapel",
+			"dir": "lancellotti_chapel",
+			"extension": "jpg"
 		}
 	]
 }
