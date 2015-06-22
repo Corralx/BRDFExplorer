@@ -1,4 +1,5 @@
 #define PI 3.14159265359
+#define GAMMA 2.2
 
 uniform vec3 albedo;
 uniform vec3 specular;
@@ -34,6 +35,38 @@ vec4 saturate(vec4 v)
 	return clamp(v, 0.0, 1.0);
 }
 
+vec3 diffuse_lambert(vec3 albedo, float NdL, float NdV, float VdH, float roughness)
+{
+	return albedo / PI;
+}
+
+vec3 diffuse_burley(vec3 albedo, float NdL, float NdV, float VdH, float roughness)
+{
+	float FD90 = (0.5 + 2.0 * VdH * VdH) * roughness;
+	FD90 -= 1.0;
+	float inv = 1.0 - NdL;
+	float pow5 = pow(inv, 5.0);
+	float FL = 1.0 + FD90 * pow5;
+	float FV = 1.0 + FD90 * pow5;
+	return albedo * FL * FV / PI;
+}
+
+vec3 diffuse_oren_nayar(vec3 albedo, float NdL, float NdV, float VdH, float roughness)
+{
+	float sigma = max(0.001, roughness * roughness);
+	float A = 1.0 - (0.5 * sigma / (sigma + 0.57));
+	float B = 0.45 * sigma / (sigma + 0.09);
+	float alpha = max(NdL, NdV);
+	float beta = min(NdL, NdV);
+	return albedo / PI * (A + B * sin(alpha) * tan(beta) * max(0.0, NdL - NdV));
+}
+
+vec3 specular_cook_torrance(vec3 specular, vec3 h, vec3 v, vec3 l, float roughness, float NdL, float NdV, float NdH, float VdH, float LdV)
+{
+	//return (specular_D(roughness, NdH) * specular_G(roughness, NdV, NdL, NdH, VdH, LdV)) * specular_F(specular, v, h) / (4.0f * NdL * NdV + 0.0001f);
+	return vec3(0.0);
+}
+
 void main()
 {
 	vec3 normal = normalize(world_normal);
@@ -47,7 +80,10 @@ void main()
     float NdH = saturate(dot(normal, h));
     float VdH = saturate(dot(camera_vector, h));
     float LdV = saturate(dot(light_vector, camera_vector));
-    float a = max(0.001, roughness * roughness);
 
-    gl_FragColor = vec4(albedo, 1.0);
+    vec3 diffuse_comp = diffuse_oren_nayar(albedo, NdL, NdV, VdH, roughness);
+    vec3 specular_comp = specular_cook_torrance(specular, h, camera_vector, light_vector, roughness, NdL, NdV, NdH, VdH, LdV);
+
+    vec3 color = (diffuse_comp * (1.0 - specular_comp) + specular_comp) * light_color * NdL * light_intensity +  + diffuse_comp * ambient_intensity;
+    gl_FragColor = pow(vec4(color, 1.0), vec4(1.0 / GAMMA));
 }

@@ -79,7 +79,11 @@ function initGUI()
 	{
 		this.model = '';
 		this.environment = '';
-		this.temperature = 1000.0;
+		this.roughness = 0.1;
+		this.albedo = [ 255, 0, 0 ];
+		this.temperature = 7000.0;
+		this.light_intensity = 1.2;
+		this.ambient_intensity = 0.1;
 	};
 
 	gui = new dat.GUI();
@@ -88,7 +92,7 @@ function initGUI()
 	gui.scene_folder = gui.addFolder("Scene");
 	gui.scene_folder.open();
 
-	gui.model = gui.scene_folder.add(gui.logic, 'model', []);
+	gui.model = gui.scene_folder.add(gui.logic, 'model', "Model", []);
 	gui.model_callback = function(value)
 	{
 		var current_model = getCurrentModel();
@@ -105,7 +109,7 @@ function initGUI()
 		});
 	};
 
-	gui.environment = gui.scene_folder.add(gui.logic, 'environment', []);
+	gui.environment = gui.scene_folder.add(gui.logic, 'environment', "Environment", []);
 	gui.environment_callback = function(value)
 	{
 		var current_cubemap = getCurrentEnvironment();
@@ -122,10 +126,15 @@ function initGUI()
 	gui.light_folder = gui.addFolder("Light");
 	gui.light_folder.open();
 
-	gui.temperature = gui.light_folder.add(gui.logic, 'temperature', 1000.0, 40000.0);
+	gui.temperature = gui.light_folder.add(gui.logic, 'temperature', "Temperature", 1000.0, 40000.0);
+	gui.light_intensity = gui.light_folder.add(gui.logic, 'light_intensity', "Light Intensity", 0.0, 5.0);
+	gui.ambient_intensity = gui.light_folder.add(gui.logic, 'ambient_intensity', "Ambient Intensity", 0.0, 5.0);
 
 	gui.material_folder = gui.addFolder("Material");
 	gui.material_folder.open();
+
+	gui.roughness = gui.material_folder.add(gui.logic, 'roughness', "Roughness", 0.0, 1.0);
+	gui.albedo = gui.material_folder.addColor(gui.logic, 'albedo', "Albedo");
 }
 
 function initStats()
@@ -162,13 +171,16 @@ function initMaterial()
 		albedo: 				{ type: "v3", value: new THREE.Vector3() },
 		specular: 		  		{ type: "v3", value: new THREE.Vector3() },
 		metallic: 				{ type: "f",  value: 0.0 				 },
-		roughness: 				{ type: "f",  value: 0.0 				 },
+		roughness: 				{ type: "f",  value: 0.1 				 },
 		environment: 			{ type: "t",  value: null 				 },
 		light_color: 			{ type: "v3", value: new THREE.Vector3() },
 		light_direction: 		{ type: "v3", value: new THREE.Vector3() },
-		light_intensity: 		{ type: "f",  value: 0.0 				 },
-		ambient_intensity: 		{ type: "f",  value: 0.0 				 }
+		light_intensity: 		{ type: "f",  value: 1.2 				 },
+		ambient_intensity: 		{ type: "f",  value: 0.1 				 }
 	};
+
+	material.uniforms.light_direction.value.set(-50.0, -50.0, -50.0);
+	material.uniforms.albedo.value.set(1.0, 0.0, 0.0);
 }
 
 function initSkybox()
@@ -256,7 +268,7 @@ function loadCubeMaps()
 			gui_env.push(cubemap.name);
 		});
 
-		gui.environment = gui.scene_folder.add(gui.logic, "environment", gui_env);
+		gui.environment = gui.scene_folder.add(gui.logic, "environment", "Environment", gui_env);
 		gui.environment.onFinishChange(gui.environment_callback);
 	});
 }
@@ -336,7 +348,7 @@ function loadModels()
 			gui_model.push(model.name);
 		});
 
-		gui.model = gui.scene_folder.add(gui.logic, "model", gui_model);
+		gui.model = gui.scene_folder.add(gui.logic, "model", "Model", gui_model);
 		gui.model.onFinishChange(gui.model_callback);
 	});
 }
@@ -472,7 +484,12 @@ function updateUniforms(current_model)
 	var normal_matrix = new THREE.Matrix3().getNormalMatrix(current_model.object.matrixWorld);
 	material.uniforms.world_normal_matrix.value = normal_matrix;
 
-	material.uniforms.albedo.value = kelvinToRGB(gui.logic.temperature);
+	material.uniforms.albedo.value.set(gui.logic.albedo[0] / 255.0, gui.logic.albedo[1] / 255.0, gui.logic.albedo[2] / 255.0);
+	material.uniforms.roughness.value = gui.logic.roughness;
+
+	material.uniforms.light_color.value = kelvinToRGB(gui.logic.temperature);
+	material.uniforms.light_intensity.value = gui.logic.light_intensity;
+	material.uniforms.ambient_intensity.value = gui.logic.ambient_intensity;
 
 	var env = getCurrentEnvironment();
 	if (env)
