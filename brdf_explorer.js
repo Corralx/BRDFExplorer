@@ -85,10 +85,10 @@ function initGUI()
 		this.model = '';
 		this.environment = '';
 		this.albedo = [ 255, 0, 0 ];
-		this.roughness = 0.1;
+		this.roughness = 0.3;
 		this.temperature = 7000.0;
 		this.light_intensity = 1.0;
-		this.ambient_intensity = 0.03;
+		this.ambient_intensity = 0.02;
 	};
 
 	gui = new dat.GUI();
@@ -176,14 +176,15 @@ function initMaterial()
 		albedo: 				{ type: "v3", value: new THREE.Vector3() },
 		specular: 		  		{ type: "v3", value: new THREE.Vector3() },
 		metallic: 				{ type: "f",  value: 0.0 				 },
-		roughness: 				{ type: "f",  value: 0.1 				 },
+		roughness: 				{ type: "f",  value: 0.3 				 },
 		environment: 			{ type: "t",  value: null 				 },
 		light_color: 			{ type: "v3", value: new THREE.Vector3() },
 		light_direction: 		{ type: "v3", value: new THREE.Vector3() },
 		light_intensity: 		{ type: "f",  value: 1.0 				 },
-		ambient_intensity: 		{ type: "f",  value: 0.03 				 }
+		ambient_intensity: 		{ type: "f",  value: 0.02 				 }
 	};
 
+	material.uniforms.specular.value.set(0.05, 0.05, 0.05);
 	material.uniforms.light_direction.value.set(-50.0, -50.0, -50.0);
 	material.uniforms.albedo.value.set(1.0, 0.0, 0.0);
 }
@@ -220,6 +221,15 @@ function loadShaders()
   				xhr.overrideMimeType("text/plain");
   		}});
 
+  		$.ajax(CONFIG.get('SHADER_DIR') + json.common).done(function(common)
+		{
+			ShaderLibrary.common = common;
+		}).fail(function()
+		{
+			$.notify("Base fragment shader not found!", "error");
+			return;
+		});
+
 		$.ajax(CONFIG.get('SHADER_DIR') + json.vertex_shader).done(function(vertex_shader)
 		{
 			ShaderLibrary.vertex_shader = vertex_shader;
@@ -232,15 +242,6 @@ function loadShaders()
 		$.ajax(CONFIG.get('SHADER_DIR') + json.fragment_shader).done(function(fragment_shader)
 		{
 			ShaderLibrary.fragment_shader = fragment_shader;
-		}).fail(function()
-		{
-			$.notify("Base fragment shader not found!", "error");
-			return;
-		});
-
-		$.ajax(CONFIG.get('SHADER_DIR') + json.common).done(function(common)
-		{
-			ShaderLibrary.common = common;
 		}).fail(function()
 		{
 			$.notify("Base fragment shader not found!", "error");
@@ -361,6 +362,15 @@ function loadModels()
 
 			gui_model.push(model.name);
 		});
+
+		gui_model.push("Sphere");
+		ModelLibrary['Sphere'] = {
+			name: "Sphere",
+			loaded: true,
+			current: false,
+			object: new THREE.Object3D()
+		};
+		ModelLibrary.Sphere.object.add(new THREE.Mesh(new THREE.SphereGeometry(0.5, 32, 32), material));
 
 		gui.model = gui.scene_folder.add(gui.logic, "model", "Model", gui_model);
 		gui.model.onFinishChange(gui.model_callback);

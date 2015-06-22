@@ -41,10 +41,41 @@ vec3 diffuse_oren_nayar(vec3 albedo, float NdL, float NdV, float VdH, float roug
 	return albedo / PI * (A + B * sin(alpha) * tan(beta) * max(0.0, cos(NdL - NdV)));
 }
 
+// Microfacet Models for Refraction through Rough Surfaces [Walter07]
+float specular_D_GGX(float alpha, float NdH)
+{
+	float alpha_square = alpha * alpha;
+	float NdH_square = NdH * NdH;
+	float den = NdH_square * (alpha_square - 1.0) + 1.0;
+	den = pow(den, 2.0) / PI;
+	return alpha_square / den;
+}
+
+float specular_G1(float NdV, float k)
+{
+	return NdV / (NdV * (1.0 - k) + k);
+}
+
+// An Inexpensive BRDF Model for Physically-based Rendering [Schlick94]
+float specular_G_Smith_Schlick(float alpha, float NdV, float NdL, float NdH, float VdH, float LdV)
+{
+	float k = pow(0.8 + 0.5 * alpha, 2.0) / 2.0;
+	return specular_G1(NdL, k) * specular_G1(NdV, k);
+}
+
+// An Inexpensive BRDF Model for Physically-based Rendering [Schlick94]
+vec3 specular_F_Schlick(vec3 specular, float VdH)
+{
+	return specular + (1.0 - specular) * pow(1.0 - VdH, 5.0);
+}
+
+// A Reflectance Model for Computer Graphics [Cook82]
 vec3 specular_cook_torrance(vec3 specular, vec3 h, vec3 v, vec3 l, float roughness, float NdL, float NdV, float NdH, float VdH, float LdV)
 {
-	//return (specular_D(roughness, NdH) * specular_G(roughness, NdV, NdL, NdH, VdH, LdV)) * specular_F(specular, v, h) / (4.0f * NdL * NdV + 0.0001f);
-	return vec3(0.0);
+	// Moving to the Next Generation - The Rendering Technology of Ryse [GDC 14]
+	float alpha = pow(1.0 - (1.0 - roughness) * 0.7, 6.0);
+
+	return (specular_D_GGX(alpha, NdH) * specular_G_Smith_Schlick(alpha, NdV, NdL, NdH, VdH, LdV)) * specular_F_Schlick(specular, VdH) / (4.0 * NdL * NdV + 0.0001);
 }
 
 void main()
