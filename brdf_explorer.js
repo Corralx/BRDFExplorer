@@ -2,6 +2,8 @@ var CONFIG = (function()
 {
 	var private =
     {
+    	'ANTIALIASING': false,
+    	'STENCIL': false,
         'FOV_Y': 60.0,
         'NEAR_PLANE': 0.1,
         'FAR_PLANE': 1000,
@@ -40,7 +42,10 @@ var renderer, scene, camera, stats, ext_stats, controls, reflection_cube, model_
 
 function init()
 {
-	renderer = new THREE.WebGLRenderer();
+	renderer = new THREE.WebGLRenderer({
+		antialias: CONFIG.get('ANTIALIASING') || URL_PARAMS['antialiasing'] == 'true',
+		stencil: CONFIG.get('STENCIL')
+	});
 	renderer.setSize(window.innerWidth, window.innerHeight);
 	document.body.appendChild(renderer.domElement);
 	renderer.setClearColor(0x000000, 1.0);
@@ -79,11 +84,11 @@ function initGUI()
 	{
 		this.model = '';
 		this.environment = '';
-		this.roughness = 0.1;
 		this.albedo = [ 255, 0, 0 ];
+		this.roughness = 0.1;
 		this.temperature = 7000.0;
-		this.light_intensity = 1.2;
-		this.ambient_intensity = 0.1;
+		this.light_intensity = 1.0;
+		this.ambient_intensity = 0.03;
 	};
 
 	gui = new dat.GUI();
@@ -133,8 +138,8 @@ function initGUI()
 	gui.material_folder = gui.addFolder("Material");
 	gui.material_folder.open();
 
-	gui.roughness = gui.material_folder.add(gui.logic, 'roughness', "Roughness", 0.0, 1.0);
 	gui.albedo = gui.material_folder.addColor(gui.logic, 'albedo', "Albedo");
+	gui.roughness = gui.material_folder.add(gui.logic, 'roughness', "Roughness", 0.0, 1.0);
 }
 
 function initStats()
@@ -175,8 +180,8 @@ function initMaterial()
 		environment: 			{ type: "t",  value: null 				 },
 		light_color: 			{ type: "v3", value: new THREE.Vector3() },
 		light_direction: 		{ type: "v3", value: new THREE.Vector3() },
-		light_intensity: 		{ type: "f",  value: 1.2 				 },
-		ambient_intensity: 		{ type: "f",  value: 0.1 				 }
+		light_intensity: 		{ type: "f",  value: 1.0 				 },
+		ambient_intensity: 		{ type: "f",  value: 0.03 				 }
 	};
 
 	material.uniforms.light_direction.value.set(-50.0, -50.0, -50.0);
@@ -227,6 +232,15 @@ function loadShaders()
 		$.ajax(CONFIG.get('SHADER_DIR') + json.fragment_shader).done(function(fragment_shader)
 		{
 			ShaderLibrary.fragment_shader = fragment_shader;
+		}).fail(function()
+		{
+			$.notify("Base fragment shader not found!", "error");
+			return;
+		});
+
+		$.ajax(CONFIG.get('SHADER_DIR') + json.common).done(function(common)
+		{
+			ShaderLibrary.common = common;
 		}).fail(function()
 		{
 			$.notify("Base fragment shader not found!", "error");
@@ -410,8 +424,8 @@ function updateMaterial()
 {
 	if (ShaderLibrary.vertex_shader)
 		material.vertexShader = ShaderLibrary.vertex_shader;
-	if (ShaderLibrary.fragment_shader)
-		material.fragmentShader = ShaderLibrary.fragment_shader;
+	if (ShaderLibrary.fragment_shader && ShaderLibrary.common)
+		material.fragmentShader = ShaderLibrary.common + ShaderLibrary.fragment_shader;
 }
 
 function getCurrentModel()

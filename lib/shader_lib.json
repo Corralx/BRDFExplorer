@@ -40,5 +40,6 @@
 			}
 		]
 	},
-	"fragment_stub": "fragment_stub.fs"
+	"fragment_stub": "fragment_stub.fs",
+	"common": "common.fs"
 }

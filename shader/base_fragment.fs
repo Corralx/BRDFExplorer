@@ -1,5 +1,3 @@
-#define PI 3.14159265359
-#define GAMMA 2.2
 
 uniform vec3 albedo;
 uniform vec3 specular;
@@ -14,26 +12,6 @@ uniform float ambient_intensity;
 
 varying vec3 world_position;
 varying vec3 world_normal;
-
-float saturate(float v)
-{
-	return clamp(v, 0.0, 1.0);
-}
-
-vec2 saturate(vec2 v)
-{
-	return clamp(v, 0.0, 1.0);
-}
-
-vec3 saturate(vec3 v)
-{
-	return clamp(v, 0.0, 1.0);
-}
-
-vec4 saturate(vec4 v)
-{
-	return clamp(v, 0.0, 1.0);
-}
 
 vec3 diffuse_lambert(vec3 albedo, float NdL, float NdV, float VdH, float roughness)
 {
@@ -56,9 +34,11 @@ vec3 diffuse_oren_nayar(vec3 albedo, float NdL, float NdV, float VdH, float roug
 	float sigma = max(0.001, roughness * roughness);
 	float A = 1.0 - (0.5 * sigma / (sigma + 0.57));
 	float B = 0.45 * sigma / (sigma + 0.09);
-	float alpha = max(NdL, NdV);
-	float beta = min(NdL, NdV);
-	return albedo / PI * (A + B * sin(alpha) * tan(beta) * max(0.0, NdL - NdV));
+	float theta_i = acos(NdL);
+	float theta_r = acos(NdV);
+	float alpha = max(theta_i, theta_r);
+	float beta = min(theta_i, theta_r);
+	return albedo / PI * (A + B * sin(alpha) * tan(beta) * max(0.0, cos(NdL - NdV)));
 }
 
 vec3 specular_cook_torrance(vec3 specular, vec3 h, vec3 v, vec3 l, float roughness, float NdL, float NdV, float NdH, float VdH, float LdV)
@@ -81,9 +61,9 @@ void main()
     float VdH = saturate(dot(camera_vector, h));
     float LdV = saturate(dot(light_vector, camera_vector));
 
-    vec3 diffuse_comp = diffuse_oren_nayar(albedo, NdL, NdV, VdH, roughness);
+    vec3 diffuse_comp = diffuse_burley(albedo, NdL, NdV, VdH, roughness);
     vec3 specular_comp = specular_cook_torrance(specular, h, camera_vector, light_vector, roughness, NdL, NdV, NdH, VdH, LdV);
 
-    vec3 color = (diffuse_comp * (1.0 - specular_comp) + specular_comp) * light_color * NdL * light_intensity +  + diffuse_comp * ambient_intensity;
+    vec3 color = (diffuse_comp * (1.0 - specular_comp) + specular_comp) * light_color * NdL * light_intensity + albedo * ambient_intensity;
     gl_FragColor = pow(vec4(color, 1.0), vec4(1.0 / GAMMA));
 }
