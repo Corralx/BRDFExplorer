@@ -14,17 +14,22 @@ void main()
 
 	float alpha = roughness_remap(roughness);
 
+    vec3 real_albedo = albedo * (1.0 - metallic);
+    vec3 real_specular = mix(vec3(specular), albedo, metallic);
+
 	// Cook-Torrance: A Reflectance Model for Computer Graphics [Cook82]
-    vec3 diffuse_comp = diffuse(albedo, NdL, NdV, VdH, roughness);
-    vec3 specular_comp = distribution(alpha, NdH) * shadowing(alpha, NdV, NdL, NdH, VdH, LdV) * fresnel(vec3(specular), VdH) / (4.0 * NdL * NdV + 0.0001);
+    vec3 diffuse_comp = diffuse(real_albedo, NdL, NdV, VdH, roughness);
+    vec3 specular_comp = distribution(alpha, NdH) * shadowing(alpha, NdV, NdL, NdH, VdH, LdV) * fresnel(real_specular, VdH) / (4.0 * NdL * NdV + 0.0001);
 
     vec3 reflect_vector = reflect(-view_vector, normal);
     reflect_vector.x *= -1.0;
     vec3 reflection = textureCube(environment, reflect_vector, alpha * 15.0).rgb;
     reflection = pow(reflection, vec3(GAMMA));
 
-    float env_fresnel = specular + (max(1.0 - alpha, specular) - specular) * pow((1.0 - NdV), 10.0);
+    vec3 env_fresnel = real_specular + (max(real_specular, 1.0 - alpha) - real_specular) * pow((1.0 - NdV), 10.0);
 
-    vec3 color = (diffuse_comp * (1.0 - specular_comp) + specular_comp) * light_color * NdL * light_intensity + albedo * ambient_intensity + reflection * env_fresnel * reflectivity;
+    vec3 color = (diffuse_comp * (1.0 - specular_comp) + specular_comp) * light_color * NdL * light_intensity;
+    color += real_albedo * ambient_intensity;
+    color += reflection * env_fresnel * reflectivity;
     gl_FragColor = pow(vec4(color, 1.0), vec4(1.0 / GAMMA));
 }
