@@ -6,8 +6,8 @@
 		"diffuse":
 		[
 			{
-				"name": "Lambert",
-				"path": "diffuse.lambert.fs",
+				"name": "Burley",
+				"path": "diffuse.burley.fs",
 				"default": true
 			},
 			{
@@ -15,8 +15,8 @@
 				"path": "diffuse.oren_nayar.fs"
 			},
 			{
-				"name": "Burley",
-				"path": "diffuse.burley.fs"
+				"name": "Lambert",
+				"path": "diffuse.lambert.fs"
 			}
 		],
 		"distribution":
