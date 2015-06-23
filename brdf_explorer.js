@@ -91,7 +91,7 @@ function initGUI()
 
 		this.albedo = [ 255, 0, 0 ];
 		this.roughness = 0.3;
-		this.specular = 0.2;
+		this.specular = 0.1;
 		this.metallic = 0.0;
 		this.diffuse_model = '';
 		this.dist_model = '';
@@ -224,7 +224,7 @@ function initMaterial()
 	{
 		world_normal_matrix: 	{ type: "m3", value: new THREE.Matrix3() },
 		albedo: 				{ type: "v3", value: new THREE.Vector3() },
-		specular: 		  		{ type: "f",  value: 0.2				 },
+		specular: 		  		{ type: "f",  value: 0.1				 },
 		metallic: 				{ type: "f",  value: 0.0 				 },
 		roughness: 				{ type: "f",  value: 0.3 				 },
 		environment: 			{ type: "t",  value: null 				 },
