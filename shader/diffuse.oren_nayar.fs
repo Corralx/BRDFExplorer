@@ -1,4 +1,5 @@
 
+// Oren-Nayar: Generalization of Lambert's Reflectance Model [SIGGRAPH94]
 vec3 diffuse(vec3 albedo, float NdL, float NdV, float VdH, float roughness)
 {
 	float sigma = max(0.001, roughness * roughness);

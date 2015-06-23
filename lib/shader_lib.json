@@ -7,36 +7,48 @@
 		[
 			{
 				"name": "Lambert",
-				"path": "lambert.fsc"
+				"path": "diffuse.lambert.fs",
+				"default": true
 			},
 			{
 				"name": "Oren-Nayar",
-				"path": "oren_nayar.fsc"
+				"path": "diffuse.oren_nayar.fs"
 			},
 			{
 				"name": "Burley",
-				"path": "burley.fsc"
+				"path": "diffuse.burley.fs"
 			}
 		],
 		"distribution":
 		[
 			{
-				"name": "",
-				"path": ""
+				"name": "GGX",
+				"path": "distribution.GGX.fs",
+				"default": true
 			}
 		],
 		"shadowing":
 		[
 			{
-				"name": "",
-				"path": ""
+				"name": "Smith Schlick",
+				"path": "shadowing.smith_schlick.fs",
+				"default": true
 			}
 		],
 		"fresnel":
 		[
 			{
-				"name": "",
-				"path": ""
+				"name": "Schlick",
+				"path": "fresnel.schlick.fs",
+				"default": true
+			}
+		],
+		"roughness_remap":
+		[
+			{
+				"name": "Crytek",
+				"path": "remap.crytek.fs",
+				"default": true
 			}
 		]
 	},
