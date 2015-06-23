@@ -87,7 +87,7 @@ function initGUI()
 
 		this.temperature = 7000.0;
 		this.light_intensity = 1.0;
-		this.ambient_intensity = 0.02;
+		this.ambient_intensity = 0.01;
 
 		this.albedo = [ 255, 0, 0 ];
 		this.roughness = 0.3;
@@ -231,7 +231,7 @@ function initMaterial()
 		light_color: 			{ type: "v3", value: new THREE.Vector3() },
 		light_direction: 		{ type: "v3", value: new THREE.Vector3() },
 		light_intensity: 		{ type: "f",  value: 1.0 				 },
-		ambient_intensity: 		{ type: "f",  value: 0.02 				 }
+		ambient_intensity: 		{ type: "f",  value: 0.01 				 }
 	};
 
 	material.uniforms.light_direction.value.set(-50.0, -50.0, -50.0);
