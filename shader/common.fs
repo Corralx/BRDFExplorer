@@ -3,6 +3,7 @@ uniform vec3 albedo;
 uniform float specular;
 uniform float metallic;
 uniform float roughness;
+uniform float reflectivity;
 uniform samplerCube environment;
 
 uniform vec3 light_color;

@@ -25,6 +25,6 @@ void main()
 
     float env_fresnel = specular + (max(1.0 - alpha, specular) - specular) * pow((1.0 - NdV), 10.0);
 
-    vec3 color = (diffuse_comp * (1.0 - specular_comp) + specular_comp) * light_color * NdL * light_intensity + albedo * ambient_intensity + reflection * env_fresnel;
+    vec3 color = (diffuse_comp * (1.0 - specular_comp) + specular_comp) * light_color * NdL * light_intensity + albedo * ambient_intensity + reflection * env_fresnel * reflectivity;
     gl_FragColor = pow(vec4(color, 1.0), vec4(1.0 / GAMMA));
 }

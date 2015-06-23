@@ -93,6 +93,8 @@ function initGUI()
 		this.roughness = 0.3;
 		this.specular = 0.1;
 		this.metallic = 0.0;
+		this.reflectivity = 1.0;
+
 		this.diffuse_model = '';
 		this.dist_model = '';
 		this.shadowing_model = '';
@@ -151,6 +153,8 @@ function initGUI()
 	gui.roughness = gui.material_folder.add(gui.logic, 'roughness', "Roughness", 0.0, 1.0);
 	gui.specular = gui.material_folder.add(gui.logic, 'specular', "Specular", 0.0, 1.0);
 	gui.metallic = gui.material_folder.add(gui.logic, 'metallic', "Metallic", 0.0, 1.0);
+	gui.reflectivity = gui.material_folder.add(gui.logic, 'reflectivity', "Reflectivity", 0.0, 1.0);
+
 	gui.diffuse_model = gui.material_folder.add(gui.logic, 'diffuse_model', "Diffuse Model", []);
 	gui.diffuse_model_callback = function(value)
 	{
@@ -227,6 +231,7 @@ function initMaterial()
 		specular: 		  		{ type: "f",  value: 0.1				 },
 		metallic: 				{ type: "f",  value: 0.0 				 },
 		roughness: 				{ type: "f",  value: 0.3 				 },
+		reflectivity: 			{ type: "f",  value: 1.0 				 },
 		environment: 			{ type: "t",  value: null 				 },
 		light_color: 			{ type: "v3", value: new THREE.Vector3() },
 		light_direction: 		{ type: "v3", value: new THREE.Vector3() },
@@ -759,6 +764,7 @@ function updateUniforms(current_model)
 	material.uniforms.albedo.value.set(gui.logic.albedo[0] / 255.0, gui.logic.albedo[1] / 255.0, gui.logic.albedo[2] / 255.0);
 	material.uniforms.roughness.value = gui.logic.roughness;
 	material.uniforms.metallic.value = gui.logic.metallic;
+	material.uniforms.reflectivity.value = gui.logic.reflectivity;
 	material.uniforms.specular.value = specularToF0(gui.logic.specular);
 
 	material.uniforms.light_color.value = kelvinToRGB(gui.logic.temperature);
