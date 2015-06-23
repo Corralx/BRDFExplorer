@@ -25,14 +25,46 @@
 				"name": "GGX",
 				"path": "distribution.GGX.fs",
 				"default": true
+			},
+			{
+				"name": "Blinn-Phong",
+				"path": "distribution.blinn_phong.fs"
+			},
+			{
+				"name": "Beckmann",
+				"path": "distribution.beckmann.fs"
 			}
 		],
 		"shadowing":
 		[
 			{
-				"name": "Smith Schlick",
+				"name": "Smith-Schlick",
 				"path": "shadowing.smith_schlick.fs",
 				"default": true
+			},
+			{
+				"name": "Implicit",
+				"path": "shadowing.implicit.fs"
+			},
+			{
+				"name": "Neumann",
+				"path": "shadowing.neumann.fs"
+			},
+			{
+				"name": "Cook-Torrance",
+				"path": "shadowing.cook_torrance.fs"
+			},
+			{
+				"name": "Kelemen",
+				"path": "shadowing.kelemen.fs"
+			},
+			{
+				"name": "Smith-GGX",
+				"path": "shadowing.smith_ggx.fs"
+			},
+			{
+				"name": "Smith-Beckmann",
+				"path": "shadowing.smith_beckmann.fs"
 			}
 		],
 		"fresnel":
@@ -41,6 +73,14 @@
 				"name": "Schlick",
 				"path": "fresnel.schlick.fs",
 				"default": true
+			},
+			{
+				"name": "None",
+				"path": "fresnel.none.fs"
+			},
+			{
+				"name": "Cook-Torrance",
+				"path": "fresnel.cook_torrance.fs"
 			}
 		],
 		"roughness_remap":
@@ -49,6 +89,10 @@
 				"name": "Crytek",
 				"path": "remap.crytek.fs",
 				"default": true
+			},
+			{
+				"name": "Epic Games",
+				"path": "remap.epic.fs"
 			}
 		]
 	},

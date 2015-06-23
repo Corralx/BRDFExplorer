@@ -17,7 +17,7 @@ void main()
 
 	// Cook-Torrance: A Reflectance Model for Computer Graphics [Cook82]
     vec3 diffuse_comp = diffuse(albedo, NdL, NdV, VdH, roughness);
-    vec3 specular_comp = distribution(alpha, NdH) * shadowing(alpha, NdV, NdL, NdH, VdH, LdV) * fresnel(specular, VdH) / (4.0 * NdL * NdV + 0.0001);
+    vec3 specular_comp = distribution(alpha, NdH) * shadowing(alpha, NdV, NdL, NdH, VdH, LdV) * fresnel(vec3(specular), VdH) / (4.0 * NdL * NdV + 0.0001);
 
     vec3 color = (diffuse_comp * (1.0 - specular_comp) + specular_comp) * light_color * NdL * light_intensity + albedo * ambient_intensity;
     gl_FragColor = pow(vec4(color, 1.0), vec4(1.0 / GAMMA));

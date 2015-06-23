@@ -91,7 +91,7 @@ function initGUI()
 
 		this.albedo = [ 255, 0, 0 ];
 		this.roughness = 0.3;
-		this.specular = 0.1;
+		this.specular = 0.2;
 		this.metallic = 0.0;
 		this.diffuse_model = '';
 		this.dist_model = '';
@@ -224,7 +224,7 @@ function initMaterial()
 	{
 		world_normal_matrix: 	{ type: "m3", value: new THREE.Matrix3() },
 		albedo: 				{ type: "v3", value: new THREE.Vector3() },
-		specular: 		  		{ type: "v3", value: new THREE.Vector3() },
+		specular: 		  		{ type: "f",  value: 0.2				 },
 		metallic: 				{ type: "f",  value: 0.0 				 },
 		roughness: 				{ type: "f",  value: 0.3 				 },
 		environment: 			{ type: "t",  value: null 				 },
@@ -234,7 +234,6 @@ function initMaterial()
 		ambient_intensity: 		{ type: "f",  value: 0.02 				 }
 	};
 
-	material.uniforms.specular.value.set(0.05, 0.05, 0.05);
 	material.uniforms.light_direction.value.set(-50.0, -50.0, -50.0);
 	material.uniforms.albedo.value.set(1.0, 0.0, 0.0);
 }
@@ -747,6 +746,11 @@ function kelvinToRGB(temperature)
 	return new THREE.Vector3(red / 255.0, green / 255.0, blue / 255.0);
 }
 
+function specularToF0(specular)
+{
+	return specular * 0.40;
+}
+
 function updateUniforms(current_model)
 {
 	var normal_matrix = new THREE.Matrix3().getNormalMatrix(current_model.object.matrixWorld);
@@ -755,6 +759,7 @@ function updateUniforms(current_model)
 	material.uniforms.albedo.value.set(gui.logic.albedo[0] / 255.0, gui.logic.albedo[1] / 255.0, gui.logic.albedo[2] / 255.0);
 	material.uniforms.roughness.value = gui.logic.roughness;
 	material.uniforms.metallic.value = gui.logic.metallic;
+	material.uniforms.specular.value = specularToF0(gui.logic.specular);
 
 	material.uniforms.light_color.value = kelvinToRGB(gui.logic.temperature);
 	material.uniforms.light_intensity.value = gui.logic.light_intensity;

@@ -1,6 +1,6 @@
 
 uniform vec3 albedo;
-uniform vec3 specular;
+uniform float specular;
 uniform float metallic;
 uniform float roughness;
 uniform samplerCube environment;
