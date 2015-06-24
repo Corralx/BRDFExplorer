@@ -93,7 +93,7 @@ function initGUI()
 		this.roughness = 0.3;
 		this.specular = 0.1;
 		this.metallic = 0.0;
-		this.reflectivity = 1.0;
+		this.reflectivity = 0.7;
 
 		this.diffuse_model = '';
 		this.dist_model = '';
@@ -231,7 +231,7 @@ function initMaterial()
 		specular: 		  		{ type: "f",  value: 0.1				 },
 		metallic: 				{ type: "f",  value: 0.0 				 },
 		roughness: 				{ type: "f",  value: 0.3 				 },
-		reflectivity: 			{ type: "f",  value: 1.0 				 },
+		reflectivity: 			{ type: "f",  value: 0.7 				 },
 		environment: 			{ type: "t",  value: null 				 },
 		light_color: 			{ type: "v3", value: new THREE.Vector3() },
 		light_direction: 		{ type: "v3", value: new THREE.Vector3() },
