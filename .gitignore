@@ -2,4 +2,5 @@ _site/
 .sass-cache/
 *.sublime-project
 *.sublime-workspace
+.DS_Store
 extra/
