@@ -49,7 +49,7 @@ function init()
 	renderer.setSize(window.innerWidth, window.innerHeight);
 	document.body.appendChild(renderer.domElement);
 	renderer.setClearColor(0x000000, 1.0);
-
+	
 	scene = new THREE.Scene();
 
 	camera = new THREE.PerspectiveCamera(CONFIG.get('FOV_Y'), window.innerWidth / window.innerHeight, CONFIG.get('NEAR_PLANE'), CONFIG.get('FAR_PLANE'));
@@ -254,7 +254,7 @@ function initSkybox()
 		depthWrite: false,
 		side: THREE.BackSide
 	});
-	
+
 	skybox = new THREE.Mesh(new THREE.BoxGeometry(500, 500, 500), materialSkyBox);
 	scene.add(skybox);
 }
@@ -626,7 +626,7 @@ function updateMaterial()
 {
 	material.vertexShader = ShaderLibrary.vertex_shader;
 	material.fragmentShader = ShaderLibrary.common + getCurrentDiffuseModel().src + getCurrentDistributionTerm().src +
-							  getCurrentShadowingTerm().src + getCurrentFresnelTerm().src + 
+							  getCurrentShadowingTerm().src + getCurrentFresnelTerm().src +
 							  getCurrentRemapTerm().src + ShaderLibrary.fragment_shader;
 	material.needsUpdate = true;
 }
