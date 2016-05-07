@@ -49,7 +49,7 @@ function init()
 	renderer.setSize(window.innerWidth, window.innerHeight);
 	document.body.appendChild(renderer.domElement);
 	renderer.setClearColor(0x000000, 1.0);
-	
+
 	scene = new THREE.Scene();
 
 	camera = new THREE.PerspectiveCamera(CONFIG.get('FOV_Y'), window.innerWidth / window.innerHeight, CONFIG.get('NEAR_PLANE'), CONFIG.get('FAR_PLANE'));
