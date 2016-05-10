@@ -4,7 +4,7 @@
 You can see it live [here!](http://corralx.me/BRDFExplorer/?antialiasing=true)
 
 ## About
-BRDF Explorer is a simple tool built to provide a visual comparison between different [BRDF models](https://en.wikipedia.org/wiki/Bidirectional_reflectance_distribution_function) commonly used in 3d graphics.
+BRDF Explorer is a simple tool built to provide a visual comparison between different [BRDF models](https://en.wikipedia.org/wiki/Bidirectional_reflectance_distribution_function) commonly used in 3D graphics.
 The implemented models are the following.
 
 For the diffuse component:
@@ -60,3 +60,13 @@ Its only requirement is a fairly recent browser with WebGL support.
 ## License
 It is licensed under the very permissive [MIT License](https://opensource.org/licenses/MIT).
 For the complete license see the provided [LICENSE](https://github.com/Corralx/BRDFExplorer/blob/master/LICENSE) file in the root directory.
+
+## Thanks
+BRDF Explorer is built upon the following libraries:
+* [Three.js](http://threejs.org/)
+* [jQuery](https://jquery.com/)
+* [dat.gui](https://github.com/dataarts/dat.gui)
+* [renderstats](https://github.com/jeromeetienne/threex.rendererstats)
+* [assimp2json](https://github.com/acgessler/assimp2json)
+* [notify.js](https://notifyjs.com/)
+* [highlight.js](https://github.com/isagalaev/highlight.js)
