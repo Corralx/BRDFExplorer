@@ -59,7 +59,7 @@ Its only requirement is a fairly recent browser with WebGL support.
 
 ## License
 It is licensed under the very permissive [MIT License](https://opensource.org/licenses/MIT).
-For the complete license see the provided [LICENSE](https://github.com/Corralx/BRDFExplorer/blob/master/LICENSE) file in the root directory.
+For the complete license see the provided [LICENSE](https://github.com/Corralx/BRDFExplorer/blob/master/LICENSE.md) file in the root directory.
 
 ## Thanks
 BRDF Explorer is built upon the following libraries:
