@@ -3,6 +3,9 @@
 ## Try it
 You can see it live [here!](http://corralx.me/BRDFExplorer/?antialiasing=true)
 
+### Screenshot
+![brdfexplorer](http://corralx.me/public/projects/brdf_explorer.preview.jpg)
+
 ## About
 BRDF Explorer is a simple tool built to provide a visual comparison between different [BRDF models](https://en.wikipedia.org/wiki/Bidirectional_reflectance_distribution_function) commonly used in 3D graphics.
 The implemented models are the following.
