@@ -82,8 +82,8 @@ function initGUI()
 
 	var gui_logic = function()
 	{
-		this.model = '';
-		this.environment = '';
+		this.model = 'Lucy';
+		this.environment = 'Coit Tower';
 
 		this.temperature = 7000.0;
 		this.light_intensity = 1.0;
@@ -95,11 +95,11 @@ function initGUI()
 		this.metallic = 0.0;
 		this.reflectivity = 0.7;
 
-		this.diffuse_model = '';
-		this.dist_model = '';
-		this.shadowing_model = '';
-		this.fresnel_model = '';
-		this.roughness_remap = '';
+		this.diffuse_model = 'Burley';
+		this.dist_model = 'GGX';
+		this.shadowing_model = 'Smith-Schlick';
+		this.fresnel_model = 'Schlick';
+		this.roughness_remap = 'Crytek';
 	};
 
 	gui = new dat.GUI();
